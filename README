@@ -1,0 +1,42 @@
+ARGOCD Deployment with app of apps
+This is "chart of applications". Deploying this chart will automatically deploy all charts found in the special charts/ directory.
+
+Theis chart defines how all of your apps deployed, and you only need to make changes there.
+
+In terms of differeniating the chart between each app, you may wish to, for example, keep everything the same except for a Docker image tied to that specific app.
+
+Gathering Dependencies
+In order to vendor the chart you only need to deploy argo cd with application bellow: 
+
+____________________________________________________
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: app-of-apps
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: git@gitlab.com:liz.asraf/argo-cd.git
+    targetRevision: HEAD
+    path: ./
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      allowEmpty: true
+___________________________________________________
+
+Installing the chart
+After implamenting the above application in your argo cd all the listed applications bellow will be deployed:
+- blog application (with mongoDB)
+- cert-manager v1.10.0
+- ingress-controller version 4.3.0
+- EFK version 7.17.3
+- prometheus-grafana 41.7.4
+- sealedsecret version 1.1.8 
+
+helm install . --name myrelease -f ./override-values.yaml
