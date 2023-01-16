@@ -1,42 +1,53 @@
-ARGOCD Deployment with app of apps
-This is "chart of applications". Deploying this chart will automatically deploy all charts found in the special charts/ directory.
+# Helm Chart for ServiceA and ServiceB
+This repository contain two helm charts, front-end-called serviceA, and back-end called serviceB
+This Helm chart deploys a front-end service called ServiceA, which publishes hits to a NATS server and get number publishes from PostgreSql
+This Helm chart deploys a back-end service called ServiceB, which listen hits on the NATS server and save those publishes on PostgreSql
+each of the charts hase dependencies charts:
 
-Theis chart defines how all of your apps deployed, and you only need to make changes there.
+## Chart Details
 
-In terms of differeniating the chart between each app, you may wish to, for example, keep everything the same except for a Docker image tied to that specific app.
+- `apiVersion`: v2
+- `description`: A Helm chart for Kubernetes
+- `dependencies`:
+  - name: postgresql
+    repository: https://charts.bitnami.com/bitnami
+    version: 12.1.9
+  - name: nats
+    repository: https://nats-io.github.io/k8s/helm/charts/
+    version: 0.20.0
+- `version`: 1.0.0
 
-Gathering Dependencies
-In order to vendor the chart you only need to deploy argo cd with application bellow: 
+## Configuration
 
-____________________________________________________
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: app-of-apps
-  finalizers:
-  - resources-finalizer.argocd.argoproj.io
-spec:
-  project: default
-  source:
-    repoURL: git@gitlab.com:liz.asraf/argo-cd.git
-    targetRevision: HEAD
-    path: ./
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: default
-  syncPolicy:
-    automated:
-      prune: true
-      allowEmpty: true
-___________________________________________________
+The following table lists the configurable parameters of the ServiceA chart and their default values.
 
-Installing the chart
-After implamenting the above application in your argo cd all the listed applications bellow will be deployed:
-- blog application (with mongoDB)
-- cert-manager v1.10.0
-- ingress-controller version 4.3.0
-- EFK version 7.17.3
-- prometheus-grafana 41.7.4
-- sealedsecret version 1.1.8 
 
-helm install . --name myrelease -f ./override-values.yaml
+| Value | Description | Default |
+|-------|-------------|---------|
+| replicaCount | Number of replicas for the deployment | 1 |
+| image | Container image information | `repository: gcr.io/the-delight-365908/service_a`, `pullPolicy: IfNotPresent`, `tag: "v1.0"` |
+| imagePullSecrets | Image pull secrets | `[]` |
+| nameOverride | Override for the name of resources | "" |
+| fullnameOverride | Override for the full name of resources | "" |
+| serviceAccount | Configuration for the service account | `create: true`, `annotations: {}`, `name: ""` |
+| podAnnotations | Pod annotations | `{}` |
+| podSecurityContext | Pod security context | `{}` |
+| securityContext | Security context | `{}` |
+| service | Service configuration | `type: ClusterIP`, `port: 80` |
+| ingress | Ingress configuration | `enabled: true`, `className: "nginx"`, `annotations: {kubernetes.io/ingress.class: nginx}`, `hosts: [{host: chart-example.local, paths: [{path: /, pathType: ImplementationSpecific}]}]`, `tls: []` |
+| resources | Resource limits and requests | `{}` |
+| autoscaling | Autoscaling configuration | `enabled: false`, `minReplicas: 1`, `maxReplicas: 100`, `targetCPUUtilizationPercentage: 80` |
+| nodeSelector | Node selector | `{}` |
+| tolerations | Tolerations | `[]` |
+| affinity | Affinity | `{}` |
+| postgresql | PostgreSQL configuration | `global: {postgresql: {auth: {username: "", password: "", database: ""}, service: {port: 5432}}}` |
+| nats | NATS configuration | `global: {nats: {auth: {username: "", password: ""}, service: {port: 4222}}}` |
+
+## Usage
+
+To install the chart with the release name `my-release`:
+
+'''
+  $ helm install my-release serviceA/ -f value.yaml
+  $ helm install my-release serviceB/ -f value.yaml
+'''
