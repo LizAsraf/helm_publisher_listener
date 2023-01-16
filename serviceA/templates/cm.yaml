@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "service_a.fullname" . }}
+data:
+  POSTGRES_USER: {{ .Values.postgresql.global.postgresql.auth.username }}
+  POSTGRES_PASSWORD: {{ .Values.postgresql.global.postgresql.auth.password }}
+  DATABASE_HOST: "{{ .Release.Name }}-hl"
+  PORT: {{ .Values.postgresql.global.postgresql.service.ports.postgresql}}
+  POSTGRES_DB: {{ .Values.postgresql.global.postgresql.auth.database }}
+  NATS_URL: "{{ .Release.Name }}-nats"
