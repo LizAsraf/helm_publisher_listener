@@ -7,7 +7,7 @@ dependencies:
   version: 12.1.9
 - name: nats
   repository: https://nats-io.github.io/k8s/helm/charts/
-  version: 0.20.0
+  version: 0.19.5
 # A chart can be either an 'application' or a 'library' chart.
 #
 # Application charts are a collection of templates that can be packaged into versioned archives
