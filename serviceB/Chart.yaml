@@ -1,5 +1,5 @@
 apiVersion: v2
-name: serviceA
+name: service_a
 description: A Helm chart for Kubernetes
 dependencies:
 - name: postgresql
