@@ -48,6 +48,8 @@ The following table lists the configurable parameters of the ServiceA chart and 
 To install the chart with the release name `my-release`:
 
 '''
-  $ helm install my-release serviceA/ -f value.yaml
-  $ helm install my-release serviceB/ -f value.yaml
+
+    $ helm install my-release serviceA/ -f value.yaml
+    $ helm install my-release serviceB/ -f value.yaml
+  
 '''
