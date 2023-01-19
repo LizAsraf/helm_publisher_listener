@@ -20,15 +20,48 @@ spec:
       labels:
         {{- include "service_a.selectorLabels" . | nindent 8 }}
     spec:
+      volumes:
+      - name: kubernetes-service-account
+        secret:
+          secretName: kubernetes-service-account
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "service_a.serviceAccountName" . }}
       containers:
         - name: {{ .Chart.Name }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           ports:
             - name: http
               containerPort: 5000
               protocol: TCP
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-          envFrom: #get the env from the configmap data
-          - configMapRef:
-              name: {{ include "service_a.fullname" . }}
+          env:
+          - name: DATABASE_HOST
+            value: "{{ include "service_a.fullname" . }}.default.svc.cluster.local" # using the "default" namespace
+          - name: POSTGRES_USER
+            valueFrom:
+              secretKeyRef:
+                name: gke-cloud-sql-secrets
+                key: username
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: gke-cloud-sql-secrets
+                key: password
+          - name: POSTGRES_DB
+            valueFrom:
+              secretKeyRef:
+                name: gke-cloud-sql-secrets
+                key: database
+          - name: PORT
+            value: "5432"
+          - name: NATS_URL
+            valueFrom:
+              configMapKeyRef:
+                name: {{ .Release.Name }}
+                key: NATS_URL

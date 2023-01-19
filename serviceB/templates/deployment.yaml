@@ -20,6 +20,10 @@ spec:
       labels:
         {{- include "serviceB.selectorLabels" . | nindent 8 }}
     spec:
+      volumes:
+      - name: kubernetes-service-account
+        secret:
+          secretName: kubernetes-service-account    
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
@@ -37,25 +41,30 @@ spec:
             - name: http
               containerPort: 80
               protocol: TCP
-          livenessProbe:
-            httpGet:
-              path: /
-              port: http
-          readinessProbe:
-            httpGet:
-              path: /
-              port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-      {{- with .Values.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.affinity }}
-      affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+          env:
+          - name: DATABASE_HOST
+            value: "{{ include "serviceB.fullname" . }}.default.svc.cluster.local" # using the "default" namespace
+          - name: POSTGRES_USER
+            valueFrom:
+              secretKeyRef:
+                name: gke-cloud-sql-secrets
+                key: username
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: gke-cloud-sql-secrets
+                key: password
+          - name: POSTGRES_DB
+            valueFrom:
+              secretKeyRef:
+                name: gke-cloud-sql-secrets
+                key: database
+          - name: PORT
+            value: "5432"
+          - name: NATS_URL
+            valueFrom:
+              configMapKeyRef:
+                name: {{ .Release.Name }}
+                key: NATS_URL

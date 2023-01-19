@@ -2,34 +2,48 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-replicaCount: 1
-
+replicaCount: 3
+projectId: "oceanic-works-374915"
+region: "us-central1"
+instance_name: "sql-instance"
 image:
-  repository: gcr.io/oceanic-works-374915/service_a
+  repository: "gcr.io/oceanic-works-374915/service_a"
   # Overrides the image tag whose default is the chart appVersion.
   tag: "v1.0"
-
+  imagePullSecrets: 
+  - name: "gcr-pull-secret"
 nameOverride: ""
 fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {
+    iam.gke.io/gcp-service-account: "k8s-staging@oceanic-works-374915.iam.gserviceaccount.com"
+  }
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: "kubernetes-service-account-a"
 
 podAnnotations: {}
 
 service:
-  type: ClusterIP
+  type: LoadBalancer
   port: 80
 
 ingress:
   enabled: true
   className: "nginx"
   annotations: {
-    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/rewrite-target: /
     # kubernetes.io/tls-acme: "true"
   }
   hosts:
-    - host: chart-example.local
+    - host: service-a
       paths:
         - path: /
-          pathType: ImplementationSpecific
+          pathType: Prefix
   tls: []
   #  - secretName: chart-example-tls
   #    hosts:
@@ -61,6 +75,3 @@ postgresql:
               username: "postgres"
               password: "example"
               database: "messages"
-          service:
-              ports:
-                  postgresql: "5432"

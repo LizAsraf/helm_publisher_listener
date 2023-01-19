@@ -1,10 +1,7 @@
 apiVersion: v2
-name: service_a
+name: service-a
 description: A Helm chart for Kubernetes
 dependencies:
-- name: postgresql
-  repository: https://charts.bitnami.com/bitnami
-  version: 12.1.9
 - name: nats
   repository: https://nats-io.github.io/k8s/helm/charts/
   version: 0.19.5
